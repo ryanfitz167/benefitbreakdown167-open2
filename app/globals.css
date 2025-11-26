@@ -1,0 +1,35 @@
+/* FILE: app/globals.css  (no @config; resilient base colors) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+
+/* Use plain CSS for base colors to avoid breakage if Tailwind config hiccups */
+html, body { background-color: #ffffff; color: #111111; }
+
+/* Utility shims so existing markup keeps working even before custom colors are generated */
+@layer utilities {
+  .bg-paper { background-color: #ffffff; }
+  .text-ink { color: #111111; }
+  .text-fog { color: #777777; }
+}
+
+/* Typography + layout */
+.prose :where(h1,h2,h3,h4) { @apply font-semibold tracking-tight; }
+.prose a { @apply underline underline-offset-4 hover:opacity-80; }
+.container-1440 { @apply mx-auto max-w-6xl px-4 md:px-6; }
+.separator { @apply h-px bg-neutral-200; }
+
+/* improve reading comfort */
+.prose :where(img) { margin: 1rem auto; border-radius: 0.75rem; }
+.prose :where(h2,h3){ scroll-margin-top: 96px; }
+
+/* Hide any "article top" ad placements, regardless of how they're injected */
+#ad-article-top,
+.ad-article-top,
+[data-ad-slot="article-top"],
+[data-ad-pos="article-top"],
+[data-slot="article-top"] {
+  display: none !important;
+}

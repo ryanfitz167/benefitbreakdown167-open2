@@ -1,0 +1,56 @@
+---
+title: "Welcome to Benefit Breakdown"
+description: "What to expect here and how to navigate topics."
+date: "2025-01-01"
+topics: ["Medicare", "HSA"]
+---
+
+This is an example MDX post. Replace with your real content.
+Add `topics` in frontmatter to power the header links and topic pages.
+
+// FILE: scripts/find-duplicates.mjs
+import { createHash } from "node:crypto";
+import { readdir, readFile, stat } from "node:fs/promises";
+import path from "node:path";
+
+const ROOT = process.cwd();
+const EXCLUDES = ["node_modules", ".next", ".git"];
+
+async function walk(dir) {
+  const out = [];
+  for (const e of await readdir(dir, { withFileTypes: true })) {
+    if (EXCLUDES.some((x) => e.name === x)) continue;
+    const p = path.join(dir, e.name);
+    if (e.isDirectory()) out.push(...(await walk(p)));
+    else out.push(p);
+  }
+  return out;
+}
+
+function sha256(buf) {
+  const h = createHash("sha256");
+  h.update(buf);
+  return h.digest("hex");
+}
+
+const files = (await walk(ROOT)).filter((p) => !/(\.map$|package-lock\.json$)/.test(p));
+const byHash = new Map();
+
+for (const f of files) {
+  const st = await stat(f);
+  if (st.size < 64) continue;
+  const buf = await readFile(f);
+  const h = sha256(buf);
+  if (!byHash.has(h)) byHash.set(h, []);
+  byHash.get(h).push(f);
+}
+
+let dupCount = 0;
+for (const [h, paths] of byHash) {
+  if (paths.length > 1) {
+    dupCount++;
+    console.log(`\n# Duplicate group (${paths.length}) sha256=${h.slice(0,8)}…`);
+    for (const p of paths) console.log(" -", path.relative(ROOT, p));
+  }
+}
+if (!dupCount) console.log("No significant duplicates detected.");
